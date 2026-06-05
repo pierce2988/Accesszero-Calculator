@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AccessZero DPA Calculator — loanDepot</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ld-purple: #5c2d8e;
+    --ld-purple-dark: #3e1d63;
+    --ld-purple-mid: #7b3fb5;
+    --ld-purple-light: #a06dd4;
+    --ld-purple-pale: #f3eeff;
+    --ld-accent: #c49eff;
+    --ld-white: #ffffff;
+    --ld-off-white: #faf9ff;
+    --ld-gray: #6b6b8a;
+    --ld-border: #e0d6f5;
+    --ld-success: #1a9e6e;
+    --shadow-card: 0 8px 40px rgba(92,45,142,0.13);
+    --shadow-result: 0 4px 24px rgba(92,45,142,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--ld-off-white);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 16px 60px;
+  }
+
+  /* ── Header ── */
+  header {
+    width: 100%;
+    max-width: 680px;
+    padding: 40px 0 0;
+    text-align: center;
+  }
+
+  .brand-wordmark {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 0.04em;
+    color: var(--ld-purple);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .brand-wordmark svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .hero-band {
+    background: linear-gradient(135deg, var(--ld-purple-dark) 0%, var(--ld-purple) 55%, var(--ld-purple-mid) 100%);
+    border-radius: 20px 20px 0 0;
+    padding: 38px 40px 36px;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 680px;
+    margin-top: 0;
+  }
+
+  .hero-band::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .hero-band::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -40px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .product-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.18);
+    color: #e8d8ff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 100px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(4px);
+  }
+
+  .hero-band h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.1rem;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-band p {
+    font-size: 0.92rem;
+    color: rgba(255,255,255,0.75);
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--ld-white);
+    width: 100%;
+    max-width: 680px;
+    border-radius: 0 0 20px 20px;
+    box-shadow: var(--shadow-card);
+    padding: 40px 44px 44px;
+  }
+
+  @media (max-width: 520px) {
+    .card { padding: 28px 22px 36px; }
+    .hero-band { padding: 30px 22px 28px; border-radius: 16px 16px 0 0; }
+    .hero-band h1 { font-size: 1.7rem; }
+  }
+
+  /* ── Divider ── */
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ld-purple-light);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--ld-border);
+  }
+
+  /* ── Inputs ── */
+  .field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  @media (max-width: 480px) {
+    .field-group { grid-template-columns: 1fr; }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ld-purple-dark);
+    letter-spacing: 0.02em;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-prefix, .input-suffix {
+    position: absolute;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--ld-purple-light);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .input-prefix { left: 14px; }
+  .input-suffix { right: 14px; }
+
+  input[type="number"] {
+    width: 100%;
+    padding: 13px 14px 13px 30px;
+    border: 1.5px solid var(--ld-border);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--ld-purple-dark);
+    background: var(--ld-off-white);
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  input[type="number"].has-suffix { padding-right: 34px; }
+
+  input[type="number"]:focus {
+    border-color: var(--ld-purple);
+    box-shadow: 0 0 0 3px rgba(92,45,142,0.12);
+    background: #fff;
+  }
+
+  input[type="number"]::placeholder { color: #b8b0cc; font-weight: 400; }
+
+  /* ── Assumptions pill ── */
+  .assumptions {
+    background: var(--ld-purple-pale);
+    border: 1px solid var(--ld-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+  }
+
+  .assumption-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--ld-purple-dark);
+  }
+
+  .assumption-item .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ld-purple-light);
+    flex-shrink: 0;
+  }
+
+  .assumption-item strong { color: var(--ld-purple); font-weight: 600; }
+
+  /* ── Calculate Button ── */
+  .calc-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--ld-purple-dark), var(--ld-purple-mid));
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    box-shadow: 0 4px 16px rgba(92,45,142,0.28);
+    margin-bottom: 32px;
+  }
+
+  .calc-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(92,45,142,0.35);
+  }
+
+  .calc-btn:active { transform: translateY(0); }
+
+  /* ── Results ── */
+  .results {
+    display: none;
+    animation: fadeUp 0.4s ease forwards;
+  }
+
+  .results.show { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 480px) {
+    .results-grid { grid-template-columns: 1fr; }
+  }
+
+  .result-card {
+    border-radius: 14px;
+    padding: 24px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-card.primary {
+    background: linear-gradient(145deg, var(--ld-purple) 0%, var(--ld-purple-dark) 100%);
+    box-shadow: var(--shadow-result);
+  }
+
+  .result-card.secondary {
+    background: linear-gradient(145deg, var(--ld-purple-mid) 0%, var(--ld-purple) 100%);
+    box-shadow: var(--shadow-result);
+  }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .result-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.9);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 100px;
+    margin-bottom: 12px;
+  }
+
+  .result-label {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 6px;
+  }
+
+  .result-payment {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .result-sub {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .result-detail {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .detail-row span:last-child {
+    color: rgba(255,255,255,0.92);
+    font-weight: 600;
+  }
+
+  /* ── Rate display ── */
+  .rate-chip {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding: 10px 16px;
+    background: var(--ld-purple-pale);
+    border: 1px solid var(--ld-border);
+    border-radius: 10px;
+    font-size: 0.8rem;
+    color: var(--ld-purple-dark);
+    animation: fadeUp 0.35s ease forwards;
+  }
+
+  .rate-chip.show { display: flex; }
+
+  .rate-chip .chip-val {
+    font-weight: 700;
+    color: var(--ld-purple);
+  }
+
+  .rate-chip svg { flex-shrink: 0; }
+
+  /* ── Footer note ── */
+  .footnote {
+    margin-top: 28px;
+    font-size: 0.73rem;
+    color: var(--ld-gray);
+    line-height: 1.6;
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid var(--ld-border);
+  }
+
+  .error-msg {
+    color: #b0003a;
+    font-size: 0.78rem;
+    margin-top: 4px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand-wordmark">
+    <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="28" height="28" rx="7" fill="#5c2d8e"/>
+      <path d="M7 20V9l7-2 7 2v11H7z" fill="none" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+      <rect x="11.5" y="13" width="5" height="7" rx="1" fill="white"/>
+    </svg>
+    loanDepot
+  </div>
+</header>
+
+<div class="hero-band">
+  <div class="product-tag">DPA Program · Second Mortgage</div>
+  <h1>AccessZero<br>Payment Calculator</h1>
+  <p>Estimate your second mortgage payment for Down Payment Assistance</p>
+</div>
+
+<div class="card">
+
+  <div class="section-label">Loan Details</div>
+
+  <div class="field-group">
+    <div class="field">
+      <label for="purchasePrice">Purchase Price</label>
+      <div class="input-wrap">
+        <span class="input-prefix">$</span>
+        <input type="number" id="purchasePrice" placeholder="e.g. 350,000" min="1" step="any" inputmode="numeric">
+      </div>
+      <span class="error-msg" id="err-price">Please enter a valid purchase price.</span>
+    </div>
+    <div class="field">
+      <label for="firstRate">1st Mortgage Note Rate</label>
+      <div class="input-wrap">
+        <input type="number" id="firstRate" placeholder="e.g. 6.5" min="0.01" max="25" step="any" inputmode="decimal" style="padding-left:14px;" class="has-suffix">
+        <span class="input-suffix">%</span>
+      </div>
+      <span class="error-msg" id="err-rate">Please enter a valid interest rate.</span>
+    </div>
+  </div>
+
+  <div class="assumptions">
+    <div class="assumption-item">
+      <span class="dot"></span>
+      Amortization: <strong>10 Years</strong>
+    </div>
+    <div class="assumption-item">
+      <span class="dot"></span>
+      2nd Mortgage Rate: <strong>1st Rate + 2.00%</strong>
+    </div>
+    <div class="assumption-item">
+      <span class="dot"></span>
+      DPA Option A: <strong>3.5% of Purchase Price</strong>
+    </div>
+    <div class="assumption-item">
+      <span class="dot"></span>
+      DPA Option B: <strong>5.0% of Purchase Price</strong>
+    </div>
+  </div>
+
+  <div class="rate-chip" id="rateChip">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="8" r="7" stroke="#5c2d8e" stroke-width="1.5"/>
+      <path d="M8 4.5v3.5l2 2" stroke="#5c2d8e" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    2nd Mortgage Rate: <span class="chip-val" id="rateChipVal">—</span> &nbsp;·&nbsp; Loan Term: <span class="chip-val">120 months</span>
+  </div>
+
+  <button class="calc-btn" onclick="calculate()">Calculate Payments</button>
+
+  <div class="results" id="results">
+    <div class="section-label">Estimated Monthly Payments</div>
+    <div class="results-grid">
+
+      <div class="result-card primary">
+        <div class="result-badge">3.5% DPA</div>
+        <div class="result-label">Estimated Monthly Payment</div>
+        <div class="result-payment" id="pay35">—</div>
+        <div class="result-sub">per month · 120 payments</div>
+        <div class="result-detail">
+          <div class="detail-row"><span>Loan Amount</span><span id="loan35">—</span></div>
+          <div class="detail-row"><span>2nd Mortgage Rate</span><span id="rate35">—</span></div>
+          <div class="detail-row"><span>Term</span><span>10 Years</span></div>
+        </div>
+      </div>
+
+      <div class="result-card secondary">
+        <div class="result-badge">5.0% DPA</div>
+        <div class="result-label">Estimated Monthly Payment</div>
+        <div class="result-payment" id="pay50">—</div>
+        <div class="result-sub">per month · 120 payments</div>
+        <div class="result-detail">
+          <div class="detail-row"><span>Loan Amount</span><span id="loan50">—</span></div>
+          <div class="detail-row"><span>2nd Mortgage Rate</span><span id="rate50">—</span></div>
+          <div class="detail-row"><span>Term</span><span>10 Years</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="footnote">
+    For use by loanDepot loan officers only. Results are estimates based on program parameters and do not constitute a loan commitment or approval. AccessZero DPA second mortgage is subject to program guidelines, investor requirements, and borrower eligibility. NMLS #174457.
+  </p>
+</div>
+
+<script>
+  function fmt(n) {
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function calcPayment(principal, annualRate, months) {
+    const r = (annualRate / 100) / 12;
+    if (r === 0) return principal / months;
+    return principal * (r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
+  }
+
+  function calculate() {
+    const priceInput = document.getElementById('purchasePrice');
+    const rateInput  = document.getElementById('firstRate');
+    const errPrice   = document.getElementById('err-price');
+    const errRate    = document.getElementById('err-rate');
+
+    const price = parseFloat(priceInput.value);
+    const firstRate = parseFloat(rateInput.value);
+
+    let valid = true;
+
+    if (!price || price <= 0) {
+      errPrice.style.display = 'block';
+      priceInput.style.borderColor = '#b0003a';
+      valid = false;
+    } else {
+      errPrice.style.display = 'none';
+      priceInput.style.borderColor = '';
+    }
+
+    if (!firstRate || firstRate <= 0 || firstRate > 25) {
+      errRate.style.display = 'block';
+      rateInput.style.borderColor = '#b0003a';
+      valid = false;
+    } else {
+      errRate.style.display = 'none';
+      rateInput.style.borderColor = '';
+    }
+
+    if (!valid) return;
+
+    const secondRate = firstRate + 2;
+    const months = 120;
+
+    const loan35 = price * 0.035;
+    const loan50 = price * 0.050;
+
+    const pmt35 = calcPayment(loan35, secondRate, months);
+    const pmt50 = calcPayment(loan50, secondRate, months);
+
+    document.getElementById('pay35').textContent = fmt(pmt35);
+    document.getElementById('loan35').textContent = fmt(loan35);
+    document.getElementById('rate35').textContent = secondRate.toFixed(3) + '%';
+
+    document.getElementById('pay50').textContent = fmt(pmt50);
+    document.getElementById('loan50').textContent = fmt(loan50);
+    document.getElementById('rate50').textContent = secondRate.toFixed(3) + '%';
+
+    document.getElementById('rateChipVal').textContent = secondRate.toFixed(3) + '%';
+
+    const rateChip = document.getElementById('rateChip');
+    const results  = document.getElementById('results');
+
+    rateChip.classList.add('show');
+    results.classList.remove('show');
+    setTimeout(() => results.classList.add('show'), 50);
+  }
+
+  // Allow Enter key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') calculate();
+  });
+
+  // Live rate chip update
+  document.getElementById('firstRate').addEventListener('input', () => {
+    const v = parseFloat(document.getElementById('firstRate').value);
+    if (v > 0 && v <= 25) {
+      document.getElementById('rateChipVal').textContent = (v + 2).toFixed(3) + '%';
+      document.getElementById('rateChip').classList.add('show');
+    } else {
+      document.getElementById('rateChip').classList.remove('show');
+    }
+  });
+</script>
+</body>
+</html>
